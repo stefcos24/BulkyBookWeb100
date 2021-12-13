@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BulkyBook.Controllers
 {
+    [Area("Admin")]
     public class CategoryController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -14,6 +15,7 @@ namespace BulkyBook.Controllers
             _unitOfWork = unitOfWork;
         }
 
+        //INDEX - GET
         public IActionResult Index()
         {
             IEnumerable<Category> objCategoryList = _unitOfWork.Category.GetAll();
