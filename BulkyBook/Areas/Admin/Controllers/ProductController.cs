@@ -68,34 +68,53 @@ namespace BulkyBook.Areas.Admin.Controllers
             else
             {
                 //UPDATE
+                productVM.Product = _unitOfWork.Product.GetFirstOrDefault(u => u.Id == id);
+                return View(productVM);
             }
-
-            return View(productVM);
         }
         //UPSERT - POST
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Upsert(ProductVM obj, IFormFile file)
+        public IActionResult Upsert(ProductVM obj, IFormFile? file)
         {
-            if(ModelState.IsValid)
+            if (ModelState.IsValid)
             {
                 string wwwRootPath = _hostEnvironment.WebRootPath;
-                if(file != null)
+                if (file != null)
                 {
                     string fileName = Guid.NewGuid().ToString();
                     var uploads = Path.Combine(wwwRootPath, @"images\products");
-                    var extensions = Path.GetExtension(file.FileName);
+                    var extension = Path.GetExtension(file.FileName);
 
-                    using (var fileStreams = new FileStream(Path.Combine(uploads, fileName + extensions), FileMode.Create))
+                    if (obj.Product.ImageUrl != null)
+                    {
+                        var oldImagePath = Path.Combine(wwwRootPath, obj.Product.ImageUrl.TrimStart('\\'));
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    using (var fileStreams = new FileStream(Path.Combine(uploads, fileName + extension), FileMode.Create))
                     {
                         file.CopyTo(fileStreams);
                     }
-                    obj.Product.ImageUrl = @"images\products\" + fileName + extensions;
+                    obj.Product.ImageUrl = @"\images\products\" + fileName + extension;
                 }
 
-                _unitOfWork.Product.Add(obj.Product);
-                _unitOfWork.Save();
-                TempData["success"] = "Product created successfully";
+                if (obj.Product.Id == 0)
+                {
+                    _unitOfWork.Product.Add(obj.Product);
+                    _unitOfWork.Save();
+                    TempData["success"] = "Product created successfully";
+                }
+                else
+                {
+                    _unitOfWork.Product.Update(obj.Product);
+                    _unitOfWork.Save();
+                    TempData["success"] = "Product updated successfully";
+                }
+
                 return RedirectToAction("Index");
             }
             return View();
