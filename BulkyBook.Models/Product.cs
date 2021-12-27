@@ -11,6 +11,7 @@ namespace BulkyBook.Models
 {
     public class Product
     {
+        [Key]
         public int Id { get; set; }
         [Required]
         public string Title { get; set; }
@@ -50,6 +51,7 @@ namespace BulkyBook.Models
         [Required]
         [Display(Name = "Cover Type")]
         public int CoverTypeId { get; set; }
+        [ForeignKey("CoverTypeId")]
         [ValidateNever]
         public CoverType CoverType { get; set; }
 
